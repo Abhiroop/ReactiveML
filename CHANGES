@@ -1,0 +1,304 @@
+Warning: incompatible changes with previous versions are marked with "*".
+
+ReactiveML 1.09.05 (2017-10-10):
+--------------------------------
+ - rmlc: bug fixes.
+ - stdlib: update of some modules.
+ * rmlbuild: distributed as an independent project
+   https://github.com/reactiveml/rmlbuild.
+ - rmlbuild: new -rmlc and -rmldep options
+
+
+
+ReactiveML 1.09.04 (2016-03-23):
+--------------------------------
+ - rmlbuild: sim field not mandatory.
+ * rmllib: renamming Async -> Rml_async.
+ - new example: reactive_art.
+ - install: fix patch problem on recent Linux.
+ - install: fix install script for rmlbuild on OCaml 4.03.
+ - install: fix uninstall
+
+
+ReactiveML 1.09.03 (2014-06-21):
+--------------------------------
+ - rmllib: bug fixes.
+ - install: bug fixes.
+ - tutorial: new lesson.
+ - doc: bug fixes.
+ - emacs-mode: bug fixes.
+
+
+ReactiveML 1.09.02 (2014-01-08):
+--------------------------------
+ * New construct: "signal s memory v gather f in e" declares a signal
+                  whose value is not reset form an instant to the other.
+		  It means that when the gathering function is applied,
+		  the initial value is not the default value, but the
+		  last value of the signal. For example, in the following
+		  process, the signal of the signal is the number of times
+		  it has been emitted since the beginning of the execution.
+		  The value printed at the end will be 3 (and not 1).
+     let process example =
+       signal count memory 0 gather (fun x y -> y + 1) in
+       emit count;
+       emit count;
+       pause; pause;
+       emit count;
+       pause;
+       print_int (last ?count);;
+ - rmlc: bug fixes.
+ * rmlbuild: do not link unix.cma and rmllib.cma by default when
+             building a cma file.
+ - rmlbuild: new "thread" tag for the use of the Async module.
+ - examples: reactive_asco bug fixes.
+ - examples: new example base on Roger Vilder
+             http://www.rogervilder.com/projets/carre_16.html.
+ - configure: check that ocamlbuild is available.
+
+ReactiveML 1.09.01 (2013-09-10):
+--------------------------------
+ - rmlc: bug fixes.
+ - rmltop: bug fixes.
+
+
+ReactiveML 1.09.00 (2013-09-09):
+--------------------------------
+ - New construct: non-instantaneous phrases can now be defined at
+                  toplevel. For instance, it is possible to write:
+       let process p = pause; print_endline "Hello World!" ;;
+       let () = run p;;
+ - New construct: the precedence of the run operator has been reduced.
+                  Parantheses around processes with arguments
+                  are no longer mandatory. For instance, it is possible
+                  to write:
+       let process p msg = pause; print_endline msg ;;
+       let () = run p "Hello World!";;
+ * New construct: new "proc" keyword to define anonymous processes
+                  with argument. For instance, it is prossible to
+                  write:
+       let () = run (proc msg -> pause; print_endline msg) "Hello World!"
+ - New construct: event configuration with values. For each construct
+                  which allows to get the value of a signal, it is
+                  possible to put an event configuration. For
+                  instance, it is possible to write:
+       await (s1(x) /\ s2(y)) \/ s3(x::y::_) in ...
+ - New construct: do/until with multiple handlers. For instance, it is
+                  possible to write:
+       do ...
+       until s1(x) /\ s2(y) -> ...
+       | s1(x) when x > 10 -> ...
+       | s3 -> ...
+       done
+ - rmlc: new option -no_reactivity_warning to discard reactivity warnings.
+ - rmlc: new option -thread to use the Async module of the standard library.
+ - rmlc: new option -debug to display instant numbers.
+ - rmlc: new way to generate process execution.
+ - rmlc: bug fixes.
+ - rmlc: compatibility with OCaml 4.01.
+ - rmlbuild: compatibility with OCaml 4.01.
+ - rmlbuild: rmlsim file is no longer mandatory.
+ * rmllib: new organization of the installation. There is one rmllib
+           file per back-end. Each of them is installed in a new directory.
+ - stdlib: new standard library.
+ - rmltop: new architecture of the toplevel.
+ - examples: new application to mixed music programming.
+
+
+ReactiveML 1.08.06 (2013-07-06):
+--------------------------------
+ - rmlc: checking the compilation of .rmli files before .rml files.
+ - rmlc: new option -annot synonym for -dtypes.
+ - rmlc: bug fixes.
+ - rmllib: implementation of "await one s(x) when f x in ...".
+ - rmlbuild: support of multiple directories.
+
+
+ReactiveML 1.08.05 (2013-06-04):
+--------------------------------
+ - rmlc: new implementation of the reactivity analysis.
+ - rmlc: providing the compiler as a library.
+ - rmlc: bug fixes.
+ - rmltop: new option -I.
+ - rmltop: bug fixes.
+ - rmllib: bug fixes.
+ - rmlbuild: handling of rmli files.
+ * rmldep: targets are ml and rzi files instead of cmo and cmi.
+
+
+ReactiveML 1.08.04 (2013-02-03):
+--------------------------------
+ - rmlc: simplification of effects in the reactivity analysis.
+ - rmlc: new option -no_reactivity_simpl to keep reactivity effects
+         without simplifications.
+ - rmlc: adding of the "with" construct to define a record.
+ - rmlc: bug fixes.
+ - rmllib: new sampling mode.
+
+
+ReactiveML 1.08.03 (2012-10-23):
+--------------------------------
+ - rmlc: bug fix in the reactivity analysis.
+
+
+ReactiveML 1.08.02 (2012-10-19):
+--------------------------------
+ - rmlc: new reactivity analysis.
+ * rmlc: renaming of the option -no_loop_warning into -no_reactivity_warning.
+ - rmlc: new option -dreactivity to display reactivity effects.
+ - rmlc: new option -old_loop_warning to activate the previous
+         reactivity analysis.
+ - rmlc: adding of the reactivity effects into the *.sannot file.
+ - rmlc: bug fixes.
+ - rmltop: new option -dreactivity to display reactivity effects.
+
+
+ReactiveML 1.08.01 (2012-06-14):
+--------------------------------
+ - New tool: rmlbuild, allows to build rml programs more easily using
+   .rmlsim files. A foo.rmlsim would look like the following:
+   /--------------
+   | sim: main
+   | sampling: 0.1
+   | n : 100
+   \--------------
+   It tells the compiler that the main file is "foo.rml" has a main
+   function called "main". The parameters "sampling" and "n" are not
+   mandatory. They have the same semantics as the compiler's command
+   line options -sampling and -n. Then the command to compile the
+   program is "rmlbuild foo.rml.byte" or "rmlbuild foo.rml.native".
+ - rmltop: "rmltop -i" lists known toplevel's directives.
+ - New configure options:
+   + "-target|--target" to choose a default compilation target ("opt"
+     or "byte") The configure script will choose the best option if
+     "-target" is not specified.
+   + "-debug|--debug" adds "-g -dtypes" to OCAMLFLAGS and OCAMLOPTFLAGS.
+ - Provide the Str library.
+
+
+ReactiveML 1.07.08 (2010-12-16):
+--------------------------------
+ - rmlc: bug fixes.
+ - rmllib: bug fixes.
+
+
+ReactiveML 1.07.07 (2010-10-28):
+--------------------------------
+ - rmlc: bug fixes.
+
+
+ReactiveML 1.07.06 (2010-01-30):
+--------------------------------
+ - rmlc: bug fixes.
+
+
+ReactiveML 1.07.05 (2009-06-18):
+--------------------------------
+ - rmlc: bug fixes.
+ - rmlc: check shape of rec.
+ - rmlc: small optimizations.
+
+
+ReactiveML 1.07.04 (2009-04-18):
+--------------------------------
+ - New construct: e1 |> e2.
+ - rmlc: bug fixes.
+ - rmllib: new runtime available with the option "-runtime Lco_n".
+
+
+ReactiveML 1.07.03 (2008-11-27):
+--------------------------------
+ - rmlc: bug fixes.
+
+
+ReactiveML 1.07.02 (2008-07-29):
+--------------------------------
+ - New construct: control e with s(pat) done.
+ - New construct: do e until s(pat) done.
+
+
+ReactiveML 1.07.01 (2008-07-08):
+--------------------------------
+ * Syntax: control/with and do/when are now finishing with "done".
+ - New construct: control e with s(x) when e done.
+ - New construct: await s(x) when e in e.
+ - rmllib: bug fixes.
+
+
+ReactiveML 1.06.09 (2008-04-05):
+--------------------------------
+ - rmlc: bug fix in the type system.
+
+
+ReactiveML 1.06.08 (2008-04-05):
+--------------------------------
+ - New construct: do/until/when.
+ - rmlc: bug fixes.
+
+
+ReactiveML 1.06.07 (2008-01-27):
+--------------------------------
+ * rmltop: new installation directory (you must remove your previous
+   installation of ReactiveML).
+ - rmltop: bug fixes.
+ - rmltop: any instantaneous expression can be executed.
+ * rmltop: #emit and #show are removed.
+ - rmltop: #suspend directive can be executed by a process.
+ - rmlc: bug fixes on arrays (2008-02-28).
+
+
+ReactiveML 1.06.06 (2007-12-06):
+--------------------------------
+ - rmlc: bug fixes.
+ * rmltop: Some directives are renamed
+
+
+ReactiveML 1.06.05 (2007-06-13):
+--------------------------------
+ * The ReactiveML library rml_interpreter.* is renamed into rmllib.*.
+ * Rml_pervasives module is renamed into Pervasives.
+ - rmlc: bug fixes.
+ - rmlc: improve code generation.
+ - When a file is compiled with the "-dtypes" option, C-c C-s also
+   displays the recursion variables.
+
+
+ReactiveML 1.06.04 (2007-06-05):
+--------------------------------
+- rmldep: new tool (see ocamldep).
+- rml_interpreter: bug fixes.
+- rmlc: improve code generation.
+
+
+ReactiveML 1.06.02 (2007-01-28):
+--------------------------------
+- rmltop: bug fixes.
+
+
+ReactiveML 1.06.01 (2006-12-07):
+--------------------------------
+- New static analysis which detects instantaneous loops and recursions.
+- New configuration files.
+- "*.rannot" files are renamed "*.tannot" and "-dtypes" option creates
+  also "*.sannot" files.
+- When a file is compiled with the "-dtypes" option, the "Instantaneous",
+  "NonInstantaneous", "Dontknow" information can be displayed with C-c C-s
+  shortcut within emacs.
+
+
+ReactiveML 1.05.00 (2006-08-17):
+--------------------------------
+* Semantics of "pre ?s" is modified.
+- New constructs: "last ?s" and "default ?s".
+
+Remark:
+
+"pre ?s" is the value associated to the signal "s" at the previous instant (on
+the base clock).
+
+"last ?s" is the last value emitted by "s".
+
+"default ?s" is the default value associated to "s".
+
+"pre ?s" is equivalent to:
+  if pre s then last ?s else default ?s

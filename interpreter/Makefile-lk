@@ -1,0 +1,22 @@
+include ../config
+include ../configure-tools/Makefile.common
+
+THEAD_TYPE=-thread
+
+RUNTIME=Lk
+RUNTIME_DIR=lk
+
+SRC=	sig_env.ml \
+	lk_interpreter.mli \
+	lk_implem.ml \
+	rml_machine.ml \
+	implem_lk_record.ml \
+
+RMLLIB_OBJ=	sig_env.cmo \
+	lk_implem.cmo \
+	rml_machine.cmo \
+	implem_lk_record.cmo \
+
+RMLLIB_INTF = lk_interpreter.cmi $(RMLLIB_OBJ:.cmo=.cmi)
+
+include Makefile-interpreter.common

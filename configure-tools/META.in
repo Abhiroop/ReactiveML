@@ -1,0 +1,4 @@
+require = "unix"
+description = "Runtime support for ReactiveML"
+archive(byte) = "rmllib.cma"
+archive(native) = "rmllib.cmxa"

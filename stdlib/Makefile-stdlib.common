@@ -1,0 +1,65 @@
+RMLC := ../compiler/rmlc
+
+# pervasives.rmli
+STDLIB_SRC= \
+	arg.rmli \
+	array.rmli \
+	buffer.rmli \
+	bytes.rmli \
+	callback.rmli \
+	camlinternalBigarray.rmli \
+	char.rmli \
+	complex.rmli \
+	digest.rmli \
+	filename.rmli \
+	format.rmli \
+	gc.rmli \
+	stream.rmli \
+	genlex.rmli \
+	graphics.rmli \
+	hashtbl.rmli \
+	int32.rmli \
+	nativeint.rmli \
+	int64.rmli \
+	lazy.rmli \
+	lexing.rmli \
+	list.rmli \
+	luc4ocaml.rmli \
+	luc4ocaml_nolbl.rmli \
+	marshal.rmli \
+	obj.rmli \
+	parsing.rmli \
+	printexc.rmli \
+	printf.rmli \
+	queue.rmli \
+	random.rmli \
+	sort.rmli \
+	stack.rmli \
+	str.rmli \
+	string.rmli \
+	sys.rmli \
+	unix.rmli \
+	weak.rmli \
+	rml_list.rmli \
+	rml_process_manager.rmli \
+
+STDLIB_RML_SRC=rml_list.rml \
+
+# rml_process_manager.rml \
+
+STDLIB_ML_SRC=
+
+STDLIB_THREAD_SRC=thread/rml_async_body.rmli \
+	thread/rml_async.rmli \
+
+
+STDLIB_THREAD_RML_SRC=thread/rml_async.rml \
+
+STDLIB_THREAD_ML_SRC=thread/rml_async_body.ml \
+
+
+# extra dependencies
+$(RUNTIME_DIR)/rml_async.cmo: $(RUNTIME_DIR)/rml_async_body.cmo
+$(RUNTIME_DIR)/rml_async.cmx: $(RUNTIME_DIR)/rml_async_body.cmx
+$(RUNTIME_DIR)/rml_async_body.cmo: OCAMLFLAGS += $(THEAD_TYPE)
+$(RUNTIME_DIR)/rml_async_body.cmx: OCAMLOPTFLAGS += -thread

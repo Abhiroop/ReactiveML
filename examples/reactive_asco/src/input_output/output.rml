@@ -1,0 +1,64 @@
+(***************************************************************)
+(*                        Reactive Asco                        *)
+(*             http://reactiveml.org/reactive_asco             *)
+(*                                                             *)
+(*                                                             *)
+(*  Authors: Guillaume Baudart (guillaume.baudart@ens.fr)      *)
+(*           Louis Mandel (louis.mandel@lri.fr)                *)
+(*                                                             *)
+(***************************************************************)
+
+(** Handle output: send control messages to Max/MSP via UDP or print
+    in the standart output.
+*)
+
+open Types
+
+(** Send control message in UDP or emit a ReactiveML signal. *)
+let process udp out_port perf =
+  let send (i,d,a) sock_actions =
+    match a with
+    | Message m ->
+	Network.sendUDP (Bytes.of_string m) sock_actions out_port ()
+    | Signal s ->
+	emit s
+  in
+  let sock_actions = Network.init_client () in
+  print_endline ("playing on port : "^(string_of_int out_port));
+  loop
+    await perf (p) in
+    List.iter (fun x -> send x sock_actions) p
+  end
+
+(** Print a feedback on the standart output. *)
+let process stdout perf =
+  let print (i,d,a) =
+    match a with
+    | Message m ->
+	print_endline (m^"\t\tevent : "^
+		       (string_of_int i)^
+		       " delay : "^
+		       (string_of_float d))
+    | Signal s ->
+	print_endline ("emit rml signal"^"\t\tevent : "^
+		       (string_of_int i)^
+		       " delay : "^
+		       (string_of_float d))
+  in
+  loop
+    await perf (p) in
+    List.iter (fun x -> print x) p
+  end
+
+(** Display messages emitted on [listen] and [perf]. *)
+let process verbose listen perf =
+  loop
+    await immediate one listen (ev) in
+    print_endline ("\nEvent : "^
+		   (string_of_int ev.index)^
+		   " Tempo : "^
+		   (string_of_float (ev.bps *. 60.)));
+    pause
+  end
+  ||
+  run (stdout perf)

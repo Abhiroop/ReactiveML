@@ -1,0 +1,147 @@
+(***************************************************************)
+(*                        Reactive Asco                        *)
+(*             http://reactiveml.org/reactive_asco             *)
+(*                                                             *)
+(*                                                             *)
+(*  Authors: Guillaume Baudart (guillaume.baudart@ens.fr)      *)
+(*           Louis Mandel (louis.mandel@lri.fr)                *)
+(*                                                             *)
+(***************************************************************)
+
+(** Example of the use of [Ascolib] to program the second pianist in
+    Piano Phase of Steve Reich.
+*)
+
+open Types
+open Ascolib
+open Music
+
+(** {6 Graphical Utility Functions} *)
+
+type pos = Right | Left | Full
+
+let draw_rect pos color =
+  let wx = Graphics.size_x () in
+  let wy = Graphics.size_y () in
+  Graphics.set_color color;
+  begin match pos with
+  | Right ->
+      Graphics.fill_rect (wx/2) 0 (wx/2) wy
+  | Left ->
+      Graphics.fill_rect 0 0 (wx/2) wy
+  | Full ->
+      Graphics.fill_rect 0 0 wx wy
+  end
+
+let process draw_sig asco s pos color =
+  loop
+    await s;
+    draw_rect pos color;
+    run (wait asco 0.2);
+    draw_rect pos Graphics.background
+  end
+
+let process graphic_observer asco s1 s2 desync resync =
+  loop
+    do
+      Graphics.clear_graph ();
+      begin
+	emit s1 ||
+	run (draw_sig asco s1 Full Graphics.green)
+      end
+    until desync done;
+    do
+      Graphics.clear_graph ();
+      begin
+	run (draw_sig asco s1 Left Graphics.blue) ||
+	run (draw_sig asco s2 Right Graphics.red)
+      end
+    until resync done
+  end
+
+
+(** {6 Utility Functions to Manage the Desynchonization Part} *)
+
+(** Track the instrumental event k mod 12. *)
+let process track asco k kth_note =
+  let ie = instr_event asco in
+  loop
+    await ie ([evt]) when (evt.index mod 12 = k) in
+    emit kth_note
+  end
+
+(** Compare the date of the last emission of two signals [s1] and [s2]
+    and emit signal [resync] if |d1-d2| < eps.
+*)
+let process compare asco s1 s2 resync eps =
+  let rec process looop d1 d2 =
+    let d1, d2 =
+      do halt
+      until
+      | s1 /\ s2 -> let d = date asco in (d, d)
+      | s1 -> (date asco, d2)
+      | s2 -> (d1, date asco)
+      done
+    in
+    if abs_float (d1 -. d2) < eps then emit resync;
+    run (looop d1 d2)
+  in
+  run (looop (-.eps) (-.eps))
+
+(** Behavior of the second pianist and the graphical interface. *)
+let process main =
+  Graphics.open_graph " 600x300";
+  let asco = create_asco "examples/piano_phase.asco" 120. in
+
+  signal sync in
+  signal desync in
+  signal first_note in
+  signal kth_note in
+
+  (* Define the 12 notes loop with an emission of signal
+    first_note at the begining of every sequence *)
+  let process melody evt n delay first_note =
+     let pattern =
+       group tight partial
+	 [0.0, action_note (delay, (E,4));
+	  0.0, action_signal first_note;
+	  delay, action_note (delay, (Fs,4));
+	  delay, action_note (delay, (B,4));
+	  delay, action_note (delay, (Cs,5));
+	  delay, action_note (delay, (D,5));
+	  delay, action_note (delay, (Fs,4));
+	  delay, action_note (delay, (E,4));
+	  delay, action_note (delay, (Cs,5));
+	  delay, action_note (delay, (B,4));
+	  delay, action_note (delay, (Fs,4));
+	  delay, action_note (delay, (D,5));
+	  delay, action_note (delay, (Cs,5));]
+     in
+    let period = 12. *. delay in
+    run (link_and_loop asco evt period n [0.0, pattern])
+  in
+
+  (* Piano Phase sync -> desync -> sync...*)
+  let piano_phase sync desync first_note kth_note =
+    let rec process piano_phase k =
+      let ev = last_event asco in
+      run (melody ev 4 0.25 first_note);
+      emit desync;
+      do
+	let ev = last_event asco in
+	run (melody (ev+1) 16 0.2542 first_note) ||
+	run (track asco k kth_note) ||
+	run (compare asco first_note kth_note sync 0.05)
+      until sync done;
+      run (piano_phase ((k + 1) mod 12))
+    in
+    piano_phase 1
+  in
+
+  run (init_asco asco);
+  begin
+    run (listener asco) ||
+    run (piano_phase sync desync first_note kth_note) ||
+    run (graphic_observer asco first_note kth_note desync sync) ||
+    run (sender asco)
+  end
